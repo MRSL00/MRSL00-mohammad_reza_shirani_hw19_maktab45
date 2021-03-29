@@ -1,5 +1,8 @@
 const User = require("../models/user");
+const fs = require("fs");
+const path = require("path");
 
+// check exsit admin and create admin
 const createAdmin = () => {
   User.findOne({ role: "admin" }, (err, existAdmin) => {
     if (err) return console.log("err in create admin");
@@ -21,4 +24,16 @@ const createAdmin = () => {
   });
 };
 
-module.exports = { createAdmin };
+// chack exist images file and create
+
+const CreatAvatarFile = () => {
+  if (fs.existsSync(path.join(__dirname, "../public/images"))) {
+    return console.log("images file is exsit :)");
+  } else {
+    fs.mkdirSync(path.join(__dirname, "../public/images"));
+    fs.mkdirSync(path.join(__dirname, "../public/images/avatars"));
+    return console.log("avatar file create :)");
+  }
+};
+
+module.exports = { createAdmin, CreatAvatarFile };

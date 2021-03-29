@@ -3,7 +3,9 @@
         <div class="row justify-content-center">
             <div class="col-12 col-md-8 col-lg-8 col-xl-6">
                 <div class="row">
-                    <div class="col text-center title">
+                    <div class="col text-center title <%= (()=> {
+                        if(page==="Login") {return "mb-0" } else
+                        {return "" } })() %>">
                         <h1 class="text-dark">
                             <%= (()=> {
                                 if(page==="Register") {return "Register" } else
@@ -110,7 +112,9 @@
                     </div>
                     
                     
-                    <div class="row align-items-center mt-4">
+                    <div class="row align-items-center  <%= (()=> {
+                        if(page==="Register") {return "mt-4" } else
+                        {return "mt-2" } })() %>">
                         
                         <div class="col-12 <%= (()=> {
                             if(page==="Login" ) {return "col-sm-12" } else {return "col-sm-6" } })() %>">

@@ -34,16 +34,8 @@ const postLogin = async (req, res) => {
         req.flash("err", "Wrong password!!!");
         return res.status(404).redirect("login");
       }
-      console.log(exsitUser);
-      req.session.user = {
-        role: exsitUser.role,
-        firstname: exsitUser.firstname,
-        lastname: exsitUser.lastname,
-        username: exsitUser.username,
-        email: exsitUser.email,
-        mobile: exsitUser.mobile,
-        gender: exsitUser.gender,
-      };
+
+      req.session.user = exsitUser;
 
       res.status(200).redirect("profile");
     });

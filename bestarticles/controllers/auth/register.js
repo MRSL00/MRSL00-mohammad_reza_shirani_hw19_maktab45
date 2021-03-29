@@ -33,7 +33,7 @@ const postRegister = (req, res) => {
   }
 
   delete req.body.confirm;
-  console.log(req.body);
+  
   //  ##################  Add a new blogger ######################
   const newUser = new User(req.body);
   newUser.save({}, (err) => {

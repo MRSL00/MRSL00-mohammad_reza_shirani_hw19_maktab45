@@ -1,4 +1,9 @@
 const User = require("../models/user");
+const bcrypt = require("bcrypt");
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
+const { UploadAvatar } = require("../tools/general-tools");
 
 const fieldsPattern = [
   "firstname",
@@ -17,81 +22,149 @@ const render_profile = (req, res) => {
 const render_editPage = (req, res) => {
   res.render("profile/edit_profile", {
     data: req.session.user,
-    succ: undefined,
+    succ: req.flash("succ"),
     err: req.flash("err"),
   });
 };
 
-const postProfile = async (req, res) => {
+const putProfile = (req, res) => {
+ 
   const bodyKeys = Object.keys(req.body);
   bodyKeys.pop();
   const checkFieldsResult = fieldsPattern.every((field) =>
     bodyKeys.includes(field)
   );
-  //  ##################  check body response ######################
+
   if (!checkFieldsResult || bodyKeys.length !== 7) {
     req.flash("err", "Server err!!! check your inputs");
-    return res.status(400).redirect("edit_profile");
+    return res.status(400).json("err");
   }
 
-  try {
-    const user = await User.findOne({ username: req.session.user.username });
-    bcrypt.compare(req.body.password, user.password, function (err, isMatch) {
+  bcrypt.compare(
+    req.body.password,
+    req.session.user.password,
+    async function (err, isMatch) {
       if (err) {
         req.flash("err", "Server err!!!");
-        return res.status(500).redirect("edit_profile");
+        return res.status(500).json("err");
+      }
+
+      if (!req.body.password) {
+        req.flash("err", "Please enter your password");
+        return res.status(400).json("err");
       }
 
       if (!isMatch) {
         req.flash("err", "Wrong password!!!");
-        return res.status(404).redirect("edit_profile");
+        return res.status(404).json("err");
       }
 
-      if (req.body.password === req.body.confirm) {
+      if (req.body.password === req.body.newpassword) {
         req.flash("err", "Passwords are equl!!!");
-        return res.status(400).redirect("edit_profile");
+        return res.status(400).json("err");
       }
 
-      User.findOneAndUpdate(
-        { _id: user._id },
-        {
-          firstname: req.body.firstname,
-          lastname: req.body.lastname,
-          username: req.body.username,
-          email: req.body.email,
-          mobile: req.body.phone,
-          gender: req.body.gender,
-          password: !req.body.newpassword
-            ? req.body.password
-            : req.body.newpassword,
-        },
-        { new: true },
-        (err, userUpdate) => {
+      req.body.password = !req.body.newpassword
+        ? req.body.password
+        : req.body.newpassword;
+
+      try {
+        const userUpdate = await User.findOneAndUpdate(
+          { _id: req.session.user._id },
+          {
+            firstname: req.body.firstname,
+            lastname: req.body.lastname,
+            username: req.body.username,
+            email: req.body.email,
+            password: req.body.password,
+            gender: req.body.gender,
+            mobile: req.body.mobile,
+            createdAt: req.session.user.createdAt,
+          },
+          { new: true }
+        );
+
+        userUpdate.save(async (err) => {
           if (err) {
-            return console.log(err.message);
+            await User.findOneAndUpdate(
+              { _id: req.session.user._id },
+              req.session.user,
+              { new: true }
+            );
+            const Err = [];
+
+            err.message
+              .substr(24)
+              .split(",")
+              .filter((el) => Err.push(el.split(":")[1].trim()));
+
+            req.flash("err", Err);
+            return res.status(400).json("err");
           }
-          userUpdate.save();
-          req.session.user = {
-            role: userUpdate.role,
-            firstname: userUpdate.firstname,
-            lastname: userUpdate.lastname,
-            username: userUpdate.username,
-            email: userUpdate.email,
-            mobile: userUpdate.mobile,
-            gender: userUpdate.gender,
-          };
-          res.status(200).render("profile/edit_profile", {
-            data: req.session.user,
-            succ: "Update Successfuly :)",
-            err: req.flash("err"),
-          });
-        }
-      );
-    });
-  } catch (err) {
-    req.flash("err", "Server err!!!");
-    return res.status(500).redirect("edit_profile");
-  }
+          req.session.user = userUpdate;
+
+          req.flash("succ", "Update was successful");
+
+          res.status(200).json("succ");
+        });
+      } catch (err) {
+        req.flash("err", "Server err!!!");
+        return res.status(500).json("err");
+      }
+    }
+  );
 };
 
-module.exports = { render_editPage, render_profile, postProfile };
+const PutAvatar = (req, res) => {
+  const uploud = UploadAvatar.single("avatar");
+  
+  uploud(req, res, async function (err) {
+    
+    if (err instanceof multer.MulterError) {
+      req.flash("err", "Server Erorr!!!");
+      res.status(500).redirect("http://localhost:500/profile/edit");
+    } else if (err) {
+      req.flash("err", err.message);
+      res.status(404).redirect("http://localhost:5000/profile/edit");
+    } else {
+      try {
+        const updateProfile = await User.findByIdAndUpdate(
+          req.session.user._id,
+          {
+            avatar: req.file.filename,
+          },
+          { new: true }
+        );
+
+        if (req.session.user.avatar) {
+          fs.unlink(
+            path.join(
+              __dirname,
+              "../public/images/avatars",
+              req.session.user.avatar
+            ),
+            (err) => {
+              if (err) {
+                req.flash("err", "Server Erorr!!!");
+                res.status(500).redirect("err");
+              } else {
+                req.session.user = updateProfile;
+                req.flash("succ", "profile image Updated successful");
+                res.status(200).redirect("http://localhost:5000/profile/edit");
+              }
+            }
+          );
+        } else {
+          req.session.user = updateProfile;
+          req.flash("succ", "profile image Updated successful");
+          res.status(200).redirect("http://localhost:5000/profile/edit");
+        }
+      } catch (err) {
+        req.flash("err", "Server Erorr!!!");
+        res.status(500).redirect("http://localhost:5000/profile/edit");
+      }
+    }
+  });
+};
+
+module.exports = { render_editPage, render_profile, putProfile, PutAvatar };

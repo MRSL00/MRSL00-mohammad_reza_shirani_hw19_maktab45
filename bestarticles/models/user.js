@@ -13,6 +13,9 @@ const essentialSchema = {
 };
 
 const UserSchema = new mgs.Schema({
+  avatar: {
+    ...essentialSchema,
+  },
   firstname: {
     ...essentialSchema,
     validate(value) {

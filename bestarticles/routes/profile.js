@@ -3,11 +3,13 @@ const router = express.Router();
 const {
   render_editPage,
   render_profile,
-  postProfile,
+  putProfile,
+  PutAvatar,
 } = require("../controllers/profile");
 
 router.get("/profile", render_profile);
-router.get("/editprofile", render_editPage);
-router.post("/profile", postProfile);
+router.get("/profile/edit", render_editPage);
+router.put("/profile/edit", putProfile);
+router.post("/profile/edit/avatar", PutAvatar);
 
 module.exports = router;

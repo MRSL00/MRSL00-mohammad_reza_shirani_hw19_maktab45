@@ -4,18 +4,21 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const session = require("express-session");
-const msg = require("mongoose");
+const mgs = require("mongoose");
 const flash = require("connect-flash");
 const { Url, Use, CheckConnection } = require("./config/dbconfig");
-const { createAdmin } = require("./tools/initialization");
+const { createAdmin, CreatAvatarFile } = require("./tools/initialization");
 const app = express();
 
 // create admin
 
 createAdmin();
 
+// check images file exsit
+CreatAvatarFile();
+
 // mongoose connection
-msg.connect(Url, Use, CheckConnection);
+mgs.connect(Url, Use, CheckConnection);
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));

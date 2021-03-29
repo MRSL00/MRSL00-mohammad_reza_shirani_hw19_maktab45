@@ -14,7 +14,15 @@
 
         <section id="content-wrapper">
             <div class="row ml-lg-5 ml-sm-4" id="photo">
-                <img src="/images/bg.jpg" class="rounded" width="350" height="250" alt="...">
+                <form class="avatar-upload">
+
+                    <div class="avatar-preview container2">
+                        <img id="imagePreview" src="/images/avatars/<%= !data.avatar?"1.png":data.avatar %>">
+
+
+
+                    </div>
+                </form>
             </div>
             <table class="table table-hover align-middle bg-white mt-3">
                 <thead class="table-dark">
@@ -32,25 +40,25 @@
 
                     <tr>
                         <td>
-                           <%= data.role %> 
+                            <%= data.role %>
                         </td>
                         <td>
-                            <%= data.firstname  %> 
+                            <%= data.firstname %>
                         </td>
                         <td>
-                            <%= data.lastname %> 
+                            <%= data.lastname %>
                         </td>
                         <td>
-                            <%= data.username %> 
+                            <%= data.username %>
                         </td>
                         <td>
-                            <%= data.gender %> 
+                            <%= data.gender %>
                         </td>
                         <td>
-                            <%= data.email %> 
+                            <%= data.email %>
                         </td>
                         <td>
-                            <%= data.mobile %> 
+                            <%= data.mobile %>
                         </td>
 
                     </tr>
